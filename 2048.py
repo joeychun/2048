@@ -1,6 +1,7 @@
 import pyglet
 import color_2048
 import random
+from pyglet.window import key
 
 class block:
     def __init__(self,value,x=40,y=40,width=40,height=40):
@@ -23,19 +24,22 @@ class block:
 
 window = pyglet.window.Window()
 
-blocks = [[],[],[],[]]
+blocks = [[None]*4,[None]*4,[None]*4,[None]*4]
 
-for i in range(16):
-    e = random.randrange(1, 12)
-    value = pow(2, e)
-    blocks[i//4].append(block(value, x=(i//4)*40, y=(i%4)*40))
+i, j = random.randrange(0, 4), random.randrange(0, 4)
+blocks[i][j] = block(random.randrange(1,3)*2, x=i*40, y=j*40)
 
+@window.event
+def on_key_press(symbol, modifiers):
+    if symbol == key.LEFT:
+        print("left")
 
 @window.event
 def on_draw():
     window.clear()
     for col in blocks:
         for b in col:
-            b.draw()
+            if b is not None:
+                b.draw()
 
 pyglet.app.run()
