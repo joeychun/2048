@@ -21,3 +21,6 @@ def get_block_color(value):
 
 def get_font_color():
     return (0,0,0,255)
+
+def get_bg_color():
+    return (100/255, 100/255, 100/255)
