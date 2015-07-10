@@ -25,17 +25,19 @@ class block:
         self.value = value
         self.x = 0
         self.y = 0
-        self.set_index(i, j)
         self.label = pyglet.text.Label(str(value),
                                        x=self.x, y=self.y,
                                        anchor_x='center', anchor_y='center',
                                        color=color_2048.get_font_color())
+        self.set_index(i, j)
 
     def set_index(self, i, j):
         self.i = i
         self.j = j
         self.x = GS + BS/2 + (GS + BS) * self.j
         self.y = GS + BS/2 + (GS + BS) * self.i
+        self.label.x = self.x
+        self.label.y = self.y
     
     def draw(self):
         pyglet.graphics.draw(4, pyglet.gl.GL_QUADS,
@@ -66,21 +68,28 @@ class board:
                     lst.append((p,q))
         return lst
 
-    def move(self, symbol):
+    def move_x(self, symbol):
         if symbol == key.LEFT:
-            for p in range(4):
-                filled = -1
-                for q in range(4):
-                    if self.blocks[p][q] is None:
-                        pass
-                    else:
-                        filled += 1
-                        b = self.blocks[p][q]
-                        b.set_index(p, filled)
-                        self.blocks[p][filled] = b
-                        if q > filled:
-                            self.blocks[p][q] = None
-
+            filled_init = -1
+            ran = range(4)
+        elif symbol == key.RIGHT:
+            filled_init = 4
+            ran = range(3,-1,-1)
+        
+        for p in range(4):
+            filled = filled_init
+            for q in ran:
+                if self.blocks[p][q] is None:
+                    pass
+                else:
+                    filled += (1 if symbol == key.LEFT else -1)
+                    b = self.blocks[p][q]
+                    b.set_index(p, filled)
+                    self.blocks[p][filled] = b
+                    if symbol == key.LEFT and q > filled:
+                        self.blocks[p][q] = None
+                    if symbol == key.RIGHT and q < filled:
+                        self.blocks[p][q] = None
         self.generate()
 
     def draw(self):
@@ -97,8 +106,10 @@ gameboard = board()
 
 @window.event
 def on_key_press(symbol, modifiers):
-    if symbol == key.LEFT:
-        gameboard.move(symbol)
+    if symbol == key.LEFT or symbol == key.RIGHT:
+        gameboard.move_x(symbol)
+    if symbol == key.UP or symbol == key.DOWN:
+        gameboard.move_y(symbol)
 
 @window.event
 def on_mouse_press(x, y, button, modifiers):
