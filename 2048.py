@@ -38,6 +38,10 @@ class block:
         self.y = GS + BS/2 + (GS + BS) * self.i
         self.label.x = self.x
         self.label.y = self.y
+
+    def set_value(self, value):
+        self.value = value
+        self.label.text = str(value)
     
     def draw(self):
         pyglet.graphics.draw(4, pyglet.gl.GL_QUADS,
@@ -82,8 +86,14 @@ class board:
                 if self.blocks[p][q] is None:
                     pass
                 else:
-                    filled += (1 if symbol == key.LEFT else -1)
                     b = self.blocks[p][q]
+                    if (symbol == key.LEFT and filled >= 0) or (symbol == key.RIGHT and filled <= 3):
+                        prev = self.blocks[p][filled]
+                        if prev.value is b.value:
+                            prev.set_value(prev.value * 2)
+                            self.blocks[p][q] = None
+                            continue
+                    filled += (1 if symbol == key.LEFT else -1)
                     b.set_index(p, filled)
                     self.blocks[p][filled] = b
                     if symbol == key.LEFT and q > filled:
@@ -91,7 +101,31 @@ class board:
                     if symbol == key.RIGHT and q < filled:
                         self.blocks[p][q] = None
         self.generate()
-
+        
+    def move_y(self, symbol):
+        if symbol == key.DOWN:
+            filled_init = -1
+            ran = range(4)
+        elif symbol == key.UP:
+            filled_init = 4
+            ran = range(3,-1,-1)
+        
+        for q in range(4):
+            filled = filled_init
+            for p in ran:
+                if self.blocks[p][q] is None:
+                    pass
+                else:
+                    b = self.blocks[p][q]
+                    filled += (1 if symbol is key.DOWN else -1)
+                    b.set_index(filled, q)
+                    self.blocks[filled][q] = b
+                    if symbol == key.DOWN and p > filled:
+                        self.blocks[p][q] = None
+                    if symbol == key.UP and p < filled:
+                        self.blocks[p][q] = None
+        self.generate()
+        
     def draw(self):
         self._grid.draw()
         for col in self.blocks:
