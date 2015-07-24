@@ -72,6 +72,26 @@ class board:
                     lst.append((p,q))
         return lst
 
+    def merge(self, pos1, pos2):
+        # pos1 is already moved
+        # pos is tuple (i, j)
+        if pos1[0] < 0 or pos1[0] > 3:
+            return False
+        if pos1[1] < 0 or pos1[1] > 3:
+            return False
+        prev = self.blocks[pos1[0]][pos1[1]]
+        curr = self.blocks[pos2[0]][pos2[1]]
+        if prev.value is curr.value:
+            curr.set_value(curr.value * 2)
+            curr.set_index(pos1[0], pos1[1])
+            self.blocks[pos1[0]][pos1[1]] = curr
+            self.blocks[pos2[0]][pos2[1]] = None
+            del prev
+            return True
+        return False
+
+
+    
     def move_x(self, symbol):
         if symbol == key.LEFT:
             filled_init = -1
@@ -87,12 +107,8 @@ class board:
                     pass
                 else:
                     b = self.blocks[p][q]
-                    if (symbol == key.LEFT and filled >= 0) or (symbol == key.RIGHT and filled <= 3):
-                        prev = self.blocks[p][filled]
-                        if prev.value is b.value:
-                            prev.set_value(prev.value * 2)
-                            self.blocks[p][q] = None
-                            continue
+                    if self.merge((p, filled), (p, q)):
+                        continue
                     filled += (1 if symbol == key.LEFT else -1)
                     b.set_index(p, filled)
                     self.blocks[p][filled] = b
@@ -117,6 +133,8 @@ class board:
                     pass
                 else:
                     b = self.blocks[p][q]
+                    if self.merge((filled, q), (p, q)):
+                        continue
                     filled += (1 if symbol is key.DOWN else -1)
                     b.set_index(filled, q)
                     self.blocks[filled][q] = b
