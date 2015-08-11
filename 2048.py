@@ -29,6 +29,7 @@ class block:
                                        x=self.x, y=self.y,
                                        anchor_x='center', anchor_y='center',
                                        color=color_2048.get_font_color())
+        self.merged = False
         self.set_index(i, j)
 
     def set_index(self, i, j):
@@ -81,16 +82,15 @@ class board:
             return False
         prev = self.blocks[pos1[0]][pos1[1]]
         curr = self.blocks[pos2[0]][pos2[1]]
-        if prev.value is curr.value:
+        if prev.value is curr.value and not prev.merged:
             curr.set_value(curr.value * 2)
             curr.set_index(pos1[0], pos1[1])
             self.blocks[pos1[0]][pos1[1]] = curr
             self.blocks[pos2[0]][pos2[1]] = None
             del prev
+            curr.merged = True
             return True
         return False
-
-
     
     def move_x(self, symbol):
         if symbol == key.LEFT:
@@ -151,17 +151,41 @@ class board:
                 if b is not None:
                     b.draw()
 
+    def merge_false(self):
+        for col in self.blocks:
+            for b in col:
+                if b is not None:
+                    b.merged = False
 
+    def check_gameover(self):
+        for col in self.blocks:
+            for b in col:
+                if b is None:
+                    return False
+        for p in range(4):
+            for q in range(3):
+                if self.blocks[p][q].value is self.blocks[p][q+1].value:
+                    return False
+        for p in range(3):
+            for q in range(4):
+                if self.blocks[p][q].value is self.blocks[p+1][q].value:
+                    return False
+        return True
 
 window = pyglet.window.Window(WS, WS)
 gameboard = board()
 
 @window.event
 def on_key_press(symbol, modifiers):
+    global gameboard
     if symbol == key.LEFT or symbol == key.RIGHT:
         gameboard.move_x(symbol)
     if symbol == key.UP or symbol == key.DOWN:
         gameboard.move_y(symbol)
+    gameboard.merge_false()
+    if gameboard.check_gameover():
+        print("GAME OVER")
+        gameboard = board()
 
 @window.event
 def on_mouse_press(x, y, button, modifiers):
